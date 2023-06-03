@@ -1,6 +1,5 @@
 const express = require('express');
 const createError = require('http-errors');
-const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const helmet = require('helmet');
 
@@ -14,7 +13,6 @@ app.use(helmet()); // https://expressjs.com/en/advanced/best-practice-security.h
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
 
 app.use('/', indexRouter);
 
