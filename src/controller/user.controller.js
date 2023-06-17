@@ -1,6 +1,7 @@
-const User = require('../model/User.model');
 const bcrypt = require('bcryptjs');
-const register = async (req, res) => {
+const User = require('../model/User.model');
+const jwt = require('jsonwebtoken');
+async function register(req, res) {
   try {
     const { email, password, name } = req.body;
     if (!email)
@@ -21,9 +22,13 @@ const register = async (req, res) => {
         message: 'name field is missing',
         statusCode: 400,
       });
-    const oldUser = await User.findOne({ email });
+    const oldUser = await User.findOne(
+      { email }
+      // { name: 0, email: 0 } // projection field
+    ); // {email:"ema.com"} || null
+
     const hashPassword = bcrypt.hashSync(password);
-    if (oldUser?.email)
+    if (oldUser)
       return res.status(400).json({
         success: false,
         message: 'User already exist',
@@ -45,7 +50,7 @@ const register = async (req, res) => {
   } catch (error) {
     throw error;
   }
-};
+}
 
 const login = async (req, res) => {
   try {
@@ -62,8 +67,9 @@ const login = async (req, res) => {
         message: 'Password field is missing',
         statusCode: 400,
       });
-    const registeredUser = await User.findOne({ email });
-    if (!registeredUser?.email)
+    const registeredUser = await User.findOne({ email }); // {email,password,name} || null
+
+    if (!registeredUser)
       return res.status(400).json({
         success: false,
         message: 'User does not exist',
@@ -73,7 +79,7 @@ const login = async (req, res) => {
     const isPasswordCorrect = bcrypt.compareSync(
       password,
       registeredUser.password
-    );
+    ); //true if it is the same or false
     // console.log({ password, passwordFromDb: registeredUser.password });
     if (!isPasswordCorrect)
       return res.status(400).json({
@@ -81,18 +87,59 @@ const login = async (req, res) => {
         message: 'incorrect password',
         statusCode: 400,
       });
+    const token = generateToken(registeredUser);
     return res.status(201).json({
       status: true,
       message: 'User login successfully',
       statusCode: 200,
-      data: registeredUser,
+      data: {
+        token,
+      },
     });
   } catch (error) {
     throw error;
   }
 };
 
+const profile = async (req, res) => {
+  try {
+    const user = req.user;
+
+    return res.status(201).json({
+      status: true,
+      message: 'User Profile fetched successfully',
+      statusCode: 200,
+      data: {
+        ...user._doc,
+        password: undefined,
+      },
+    });
+  } catch (error) {
+    throw error;
+  }
+};
+
+function generateToken(user) {
+  const token = jwt.sign(
+    {
+      id: user._id.toString(),
+    },
+    'sjskjsksjkj',
+    {
+      expiresIn: '1h',
+    }
+  );
+  return token;
+}
+
+function verifyToken(token) {
+  const payload = jwt.verify(token, 'sjskjsksjkj');
+  return payload;
+}
+
 module.exports = {
   register,
   login,
+  profile,
+  verifyToken,
 };

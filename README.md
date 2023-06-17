@@ -37,9 +37,12 @@ npm run test:watch
 ```
 
 ### Linting
+
 ```
 npm run lint
 
 # fix issues
 npm run lint:fix
 ```
+
+<!-- package.json>server.js(www)>database>app>routes>controller>model -->

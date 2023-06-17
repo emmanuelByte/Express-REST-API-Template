@@ -6,6 +6,7 @@ const helmet = require('helmet');
 const indexRouter = require('./routes/index');
 
 const errorHandler = require('./middleware/errorHandler');
+const { default: listEndpoints } = require('list_end_points');
 
 const app = express();
 
@@ -23,5 +24,5 @@ app.use((req, res, next) => {
 
 // pass any unhandled errors to the error handler
 app.use(errorHandler);
-
+listEndpoints(app);
 module.exports = app;
